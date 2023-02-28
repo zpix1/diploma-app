@@ -1,4 +1,4 @@
-import mongoose, { Model } from "mongoose";
+import mongoose, { InferSchemaType, Model } from "mongoose";
 import { SearchResult, Worker } from "diploma-core";
 
 const { Schema } = mongoose;
@@ -51,9 +51,11 @@ const SearchResultSchema = new Schema(
   { timestamps: true }
 );
 
-mongoose.connect("mongodb://127.0.0.1:27017/search");
-
-const SearchResultModel = mongoose.model("SearchResult", SearchResultSchema);
+export let SearchResultModel: mongoose.Model<
+  InferSchemaType<typeof SearchResultSchema>
+> =
+  mongoose.models.SearchResult ??
+  mongoose.model("SearchResult", SearchResultSchema);
 
 export const saveSearchResult = async (
   ...results: SearchResult[]
@@ -77,8 +79,4 @@ const deepConvert = (x: any, depth = 4): void => {
       deepConvert(v as Record<string, unknown>, depth - 1);
     }
   }
-};
-
-export const closeConnection = async (): Promise<void> => {
-  await mongoose.connection.close();
 };

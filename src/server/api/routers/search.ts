@@ -2,6 +2,9 @@ import { TOKEN_ID_LIST, TokenId, Worker } from "diploma-core";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { SearchResultModel } from "../db/dbClient";
+import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
+import dbConnect from "../db/dbConnect";
 
 export const searchRouter = createTRPCRouter({
   hello: publicProcedure
@@ -26,12 +29,31 @@ export const searchRouter = createTRPCRouter({
         saveDataToDb: z.boolean().optional().default(true),
       })
     )
-    .query(async ({ input }) => {
+    .mutation(async ({ input }) => {
+      const t1 = performance.now();
       const worker = new Worker();
-      return await worker.doSearch({
+      const result = await worker.doSearch({
         blockNumber: input.blockNumber,
         capsSet: input.capsSet,
         usedTokens: input.usedTokens,
       });
+      const t2 = performance.now();
+
+      let results;
+      if (!input.saveDataToDb) {
+        results = await Promise.all(
+          result.map((e) => SearchResultModel.castObject(e))
+        );
+      } else {
+        await dbConnect();
+        results = await SearchResultModel.insertMany(result);
+      }
+      return {
+        results,
+        time: t2 - t1,
+      };
     }),
 });
+
+export type SearchRouterInputs = inferRouterInputs<typeof searchRouter>;
+export type SearchRouterOutputs = inferRouterOutputs<typeof searchRouter>;
