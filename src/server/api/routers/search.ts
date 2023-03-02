@@ -26,7 +26,6 @@ export const searchRouter = createTRPCRouter({
           .enum(TOKEN_ID_LIST as [TokenId, ...TokenId[]])
           .array()
           .optional(),
-        saveDataToDb: z.boolean().optional().default(true),
       })
     )
     .mutation(async ({ input }) => {
@@ -40,19 +39,27 @@ export const searchRouter = createTRPCRouter({
       const t2 = performance.now();
 
       let results;
-      if (!input.saveDataToDb) {
-        results = await Promise.all(
-          result.map((e) => SearchResultModel.castObject(e))
-        );
-      } else {
-        await dbConnect();
-        results = await SearchResultModel.insertMany(result);
-      }
+      await dbConnect();
+      results = await SearchResultModel.insertMany(result);
       return {
         results,
         time: t2 - t1,
       };
     }),
+  getSearchResult: publicProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+      })
+    )
+    .query(async ({ input }) => {
+      await dbConnect();
+      return SearchResultModel.findById(input.id);
+    }),
+  getBestSearches: publicProcedure.input(z.object({})).query(async () => {
+    await dbConnect();
+    return SearchResultModel.find({}).sort({ _profitInUSD: -1 }).limit(10);
+  }),
 });
 
 export type SearchRouterInputs = inferRouterInputs<typeof searchRouter>;
