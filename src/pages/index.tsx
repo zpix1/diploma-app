@@ -30,18 +30,19 @@ const Home: NextPage = () => {
     <Base>
       <Header>Status: </Header>
       <Block>
-        {status === "success" ? (
+        {status === "success" && (
           <>
-            success in{" "}
+            Success in{" "}
             {(searchResult.time / 1000).toLocaleString("en-US", {
               minimumIntegerDigits: 2,
               useGrouping: false,
             })}{" "}
             seconds
           </>
-        ) : (
-          status
         )}
+        {status === "error" && <>Error: {error.message}</>}
+        {status === "idle" && <>...</>}
+        {status === "loading" && <>Loading...</>}
       </Block>
 
       <Header>Options:</Header>
