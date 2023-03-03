@@ -24,6 +24,12 @@ const Strategy: NextPage = () => {
           <Block>
             <ResultsTable results={[data]} addStrategyLink={false} />
           </Block>
+          <Header>Config:</Header>
+          <Block>
+            <div>Contracts count: {data.config?.contractsCount}</div>
+            <div>Used factories: {data.config?.usedFactories.join(", ")}</div>
+            <div>Used tokens: {data.config?.usedTokens.join(", ")}</div>
+          </Block>
           <Header>Trade order:</Header>
           <Block>
             <TradeStrategy strategy={data.strategy} />
