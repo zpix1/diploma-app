@@ -1,4 +1,11 @@
-import { TOKEN_ID_LIST, TokenId, Worker } from "diploma-core";
+import {
+  DEFAULT_CAPS_SET,
+  FACTORIES,
+  TOKENS,
+  TOKEN_ID_LIST,
+  TokenId,
+  Worker,
+} from "diploma-core";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
@@ -26,6 +33,7 @@ export const searchRouter = createTRPCRouter({
           .enum(TOKEN_ID_LIST as [TokenId, ...TokenId[]])
           .array()
           .optional(),
+        usedFactories: z.enum(FACTORIES).array().optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -38,9 +46,8 @@ export const searchRouter = createTRPCRouter({
       });
       const t2 = performance.now();
 
-      let results;
       await dbConnect();
-      results = await SearchResultModel.insertMany(result);
+      const results = await SearchResultModel.insertMany(result);
       return {
         results,
         time: t2 - t1,
@@ -60,6 +67,11 @@ export const searchRouter = createTRPCRouter({
     await dbConnect();
     return SearchResultModel.find({}).sort({ _profitInUSD: -1 }).limit(10);
   }),
+  getConfig: publicProcedure.input(z.object({})).query(() => ({
+    availableTokens: TOKENS,
+    availableFactories: FACTORIES,
+    capsSet: DEFAULT_CAPS_SET,
+  })),
 });
 
 export type SearchRouterInputs = inferRouterInputs<typeof searchRouter>;

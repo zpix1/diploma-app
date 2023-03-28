@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { Base } from "~/components/Base";
 import { BestResultsTable } from "~/components/BestResultsTable";
+import { Configurator } from "~/components/Configurator";
 import { ResultsTable } from "~/components/ResultsTable";
-import { Block, Header } from "~/components/ui";
+import { Block, Header, ResultsTableLoader } from "~/components/ui";
+import { SearchRouterInputs } from "~/server/api/routers/search";
 
 import { api } from "~/utils/api";
 
@@ -17,7 +19,12 @@ const Home: NextPage = () => {
     mutate,
   } = api.search.doSearch.useMutation();
 
-  const performSearchRequest = () => mutate({});
+  const performSearchRequest = () =>
+    mutate({
+      ...config,
+    });
+
+  const [config, setConfig] = useState<SearchRouterInputs["doSearch"]>();
 
   const buttonText =
     status === "loading"
@@ -46,23 +53,28 @@ const Home: NextPage = () => {
       </Block>
 
       <Header>Options:</Header>
-      <Block></Block>
+      <Block>
+        <Configurator setConfig={setConfig} disabled={status === "loading"} />
+      </Block>
       <div className="mt-2 flex justify-center">
         <input
           type="button"
           onClick={performSearchRequest}
-          value={buttonText}
+          value={`${buttonText}`}
           className={
-            "m-auto mx-auto cursor-pointer rounded bg-red-300 p-3 text-lg disabled:pointer-events-none disabled:bg-gray-200"
+            "m-auto mx-auto cursor-pointer rounded  bg-sky-500 p-3 text-lg text-white disabled:pointer-events-none disabled:bg-gray-200 disabled:text-black"
           }
           disabled={status === "loading"}
         />
       </div>
-      {status === "success" && (
+      {(status === "success" || status === "loading") && (
         <>
           <Header>Results:</Header>
           <Block>
-            <ResultsTable results={searchResult.results} />
+            {status === "success" && (
+              <ResultsTable results={searchResult.results} />
+            )}
+            {status === "loading" && <ResultsTableLoader />}
           </Block>
         </>
       )}
