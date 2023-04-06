@@ -13,6 +13,19 @@ import { SearchResultModel } from "../db/dbClient";
 import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import dbConnect from "../db/dbConnect";
 
+const ConfigScheme = z.object({
+  reloadContracts: z.oboolean(),
+  blockNumber: z
+    .union([z.literal("latest"), z.number().int().positive()])
+    .optional(),
+  capsSet: z.bigint().array().optional(),
+  usedTokens: z
+    .enum(TOKEN_ID_LIST as [TokenId, ...TokenId[]])
+    .array()
+    .optional(),
+  usedFactories: z.enum(FACTORIES).array().optional(),
+});
+
 export const searchRouter = createTRPCRouter({
   hello: publicProcedure
     .input(z.object({ text: z.string() }))
@@ -21,38 +34,23 @@ export const searchRouter = createTRPCRouter({
         greeting: `Hello ${input.text}`,
       };
     }),
-  doSearch: publicProcedure
-    .input(
-      z.object({
-        reloadContracts: z.oboolean(),
-        blockNumber: z
-          .union([z.literal("latest"), z.number().int().positive()])
-          .optional(),
-        capsSet: z.bigint().array().optional(),
-        usedTokens: z
-          .enum(TOKEN_ID_LIST as [TokenId, ...TokenId[]])
-          .array()
-          .optional(),
-        usedFactories: z.enum(FACTORIES).array().optional(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      const t1 = performance.now();
-      const worker = new Worker();
-      const result = await worker.doSearch({
-        blockNumber: input.blockNumber,
-        capsSet: input.capsSet,
-        usedTokens: input.usedTokens,
-      });
-      const t2 = performance.now();
+  doSearch: publicProcedure.input(ConfigScheme).mutation(async ({ input }) => {
+    const t1 = performance.now();
+    const worker = new Worker();
+    const result = await worker.doSearch({
+      blockNumber: input.blockNumber,
+      capsSet: input.capsSet,
+      usedTokens: input.usedTokens,
+    });
+    const t2 = performance.now();
 
-      await dbConnect();
-      const results = await SearchResultModel.insertMany(result);
-      return {
-        results,
-        time: t2 - t1,
-      };
-    }),
+    await dbConnect();
+    const results = await SearchResultModel.insertMany(result);
+    return {
+      results,
+      time: t2 - t1,
+    };
+  }),
   getSearchResult: publicProcedure
     .input(
       z.object({

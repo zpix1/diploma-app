@@ -8,6 +8,18 @@ export const Header = ({ children }: { children?: ReactNode }) => {
   return <div className="pt-2 pb-1 text-xl">{children}</div>;
 };
 
+export const Subtext = ({ children }: { children?: ReactNode }) => {
+  return <span className="align-middle text-sm">{children}</span>;
+};
+
+export const Suberror = ({ children }: { children?: ReactNode }) => {
+  return (
+    <span className="align-middle text-sm lowercase text-red-500">
+      {children}
+    </span>
+  );
+};
+
 export const ResultsTableLoader = () => {
   return (
     <div className="flex animate-pulse space-x-4">

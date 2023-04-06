@@ -1,7 +1,12 @@
 import { Factory, TokenId } from "diploma-core";
-import { ReactNode, useEffect, useReducer, useState } from "react";
-import type { SearchRouterInputs } from "~/server/api/routers/search";
+import { ReactNode, useEffect, useMemo, useReducer, useState } from "react";
+import {
+  SearchRouterInputs,
+  SearchRouterOutputs,
+} from "~/server/api/routers/search";
 import { api } from "~/utils/api";
+import { Header, Suberror, Subtext } from "./ui";
+import { ZodError, z } from "zod";
 
 const capFormatter = Intl.NumberFormat("en-US", {
   maximumFractionDigits: 4,
@@ -116,12 +121,32 @@ const configReducer = (state: Config, action: Action): Config => {
   throw new Error("invalid action type");
 };
 
+const isConfigValid = (
+  config: Config,
+  baseConfig: SearchRouterOutputs["getConfig"]
+) => {
+  const ConfigScheme = z.object({
+    reloadContracts: z.oboolean(),
+    blockNumber: z.union([z.literal("latest"), z.number().int().positive()]),
+    capsSet: z.bigint().array().nonempty(),
+    usedTokens: z
+      .enum(
+        baseConfig.availableTokens.map((t) => t.id) as [string, ...string[]]
+      )
+      .array()
+      .nonempty(),
+    usedFactories: z.enum(baseConfig.availableFactories).array().nonempty(),
+  });
+
+  return ConfigScheme.safeParse(config);
+};
+
 export const Configurator = ({
   setConfig,
   disabled,
 }: {
   config?: SearchRouterInputs["doSearch"];
-  setConfig: (config: SearchRouterInputs["doSearch"]) => void;
+  setConfig: (config: SearchRouterInputs["doSearch"] | undefined) => void;
   disabled?: boolean;
 }) => {
   const { data: baseConfig, error } = api.search.getConfig.useQuery(
@@ -144,9 +169,18 @@ export const Configurator = ({
 
   const [state, dispatch] = useReducer(configReducer, undefined);
 
+  const [validationError, setValidationError] = useState<ZodError<Config>>();
+
   useEffect(() => {
-    if (state) {
-      setConfig(state);
+    if (state && baseConfig) {
+      const valid = isConfigValid(state, baseConfig);
+      if (valid.success) {
+        setConfig(state);
+        setValidationError(undefined);
+      } else {
+        setConfig(undefined);
+        setValidationError(valid.error);
+      }
     }
   }, [state]);
 
@@ -158,9 +192,14 @@ export const Configurator = ({
     return <div>Loading...</div>;
   }
 
+  const fErrors = validationError?.formErrors.fieldErrors;
+
   return (
     <div className={disabled ? "pointer-events-none opacity-30" : ""}>
-      <div className="text-xl">Block number:</div>
+      <Header>
+        Block number:{" "}
+        {fErrors?.blockNumber && <Suberror>({fErrors.blockNumber})</Suberror>}
+      </Header>
       <div className="flex w-auto justify-around gap-1 pb-2">
         <Item
           enabled={state?.blockNumber === "latest"}
@@ -193,9 +232,12 @@ export const Configurator = ({
         <Item>Yes</Item>
         <Item>No</Item>
       </div> */}
-      <div className="text-xl">
-        Factories ({state?.usedFactories?.length} selected):
-      </div>
+      <Header>
+        Factories: <Subtext>({state?.usedFactories?.length} selected)</Subtext>{" "}
+        {fErrors?.usedFactories && (
+          <Suberror>({fErrors.usedFactories})</Suberror>
+        )}
+      </Header>
       <div className="flex w-auto justify-between gap-1 pb-2">
         {baseConfig.availableFactories.map((f) => (
           <Item
@@ -211,9 +253,10 @@ export const Configurator = ({
           </Item>
         ))}
       </div>
-      <div className="text-xl">
-        Tokens ({state?.usedTokens?.length} selected):
-      </div>
+      <Header>
+        Token: <Subtext>({state?.usedTokens?.length} selected)</Subtext>{" "}
+        {fErrors?.usedTokens && <Suberror>({fErrors.usedTokens})</Suberror>}
+      </Header>
       <div className="flex w-auto justify-between gap-1 pb-2">
         {baseConfig.availableTokens.map((t) => (
           <Item
@@ -230,9 +273,10 @@ export const Configurator = ({
           </Item>
         ))}
       </div>
-      <div className="text-xl">
-        Capitals ({state?.capsSet?.length} selected):
-      </div>
+      <Header>
+        Capitals: <Subtext>({state?.capsSet?.length} selected)</Subtext>{" "}
+        {fErrors?.capsSet && <Suberror>({fErrors.capsSet})</Suberror>}
+      </Header>
       <div className="flex w-auto justify-between gap-1">
         {baseConfig.capsSet.map((c) => (
           <Item

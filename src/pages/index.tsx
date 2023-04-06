@@ -24,7 +24,9 @@ const Home: NextPage = () => {
       ...config,
     });
 
-  const [config, setConfig] = useState<SearchRouterInputs["doSearch"]>();
+  const [config, setConfig] = useState<
+    SearchRouterInputs["doSearch"] | undefined
+  >();
 
   const buttonText =
     status === "loading"
@@ -64,7 +66,7 @@ const Home: NextPage = () => {
           className={
             "m-auto mx-auto cursor-pointer rounded  bg-sky-500 p-3 text-lg text-white disabled:pointer-events-none disabled:bg-gray-200 disabled:text-black"
           }
-          disabled={status === "loading"}
+          disabled={status === "loading" || !config}
         />
       </div>
       {(status === "success" || status === "loading") && (
