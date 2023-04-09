@@ -7,6 +7,7 @@ import { z } from "zod";
 const server = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]),
   MONGODB_URI: z.string().min(1),
+  WEB3_PROVIDER_URL: z.string().min(1),
 });
 
 /**
@@ -26,6 +27,7 @@ const client = z.object({
 const processEnv = {
   NODE_ENV: process.env.NODE_ENV,
   MONGODB_URI: process.env.MONGODB_URI,
+  WEB3_PROVIDER_URL: process.env.WEB3_PROVIDER_URL,
 };
 
 // Don't touch the part below

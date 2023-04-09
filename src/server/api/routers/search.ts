@@ -12,6 +12,7 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { SearchResultModel } from "../db/dbClient";
 import { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import dbConnect from "../db/dbConnect";
+import { env } from "~/env.mjs";
 
 const ConfigScheme = z.object({
   reloadContracts: z.oboolean(),
@@ -36,7 +37,9 @@ export const searchRouter = createTRPCRouter({
     }),
   doSearch: publicProcedure.input(ConfigScheme).mutation(async ({ input }) => {
     const t1 = performance.now();
-    const worker = new Worker();
+    const worker = new Worker({
+      web3ProviderUrl: env.WEB3_PROVIDER_URL,
+    });
     const result = await worker.doSearch({
       blockNumber: input.blockNumber,
       capsSet: input.capsSet,
