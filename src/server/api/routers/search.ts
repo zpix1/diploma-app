@@ -39,11 +39,13 @@ export const searchRouter = createTRPCRouter({
     const t1 = performance.now();
     const worker = new Worker({
       web3ProviderUrl: env.WEB3_PROVIDER_URL,
+      maxTPS: input.blockNumber === "latest" ? Infinity : 30,
     });
     const result = await worker.doSearch({
       blockNumber: input.blockNumber,
       capsSet: input.capsSet,
       usedTokens: input.usedTokens,
+      usedFactories: input.usedFactories,
     });
     const t2 = performance.now();
 

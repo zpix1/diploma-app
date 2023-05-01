@@ -209,6 +209,7 @@ export const Configurator = ({
               payload: "latest",
             })
           }
+          title="best performance"
         >
           latest
         </Item>
@@ -225,6 +226,7 @@ export const Configurator = ({
               payload: e.currentTarget.valueAsNumber,
             })
           }
+          title="reduced performance"
         />
       </div>
       {/* <div className="text-xl">Reload contracts?:</div>
