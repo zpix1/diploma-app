@@ -26,8 +26,8 @@ export const ResultsTableLoader = () => {
       <div className="flex-1 space-y-3 py-1">
         <div className="h-4 rounded bg-sky-700"></div>
         <div className="space-y-3">
-          {Array.from({ length: 10 }).map(() => (
-            <div className="grid grid-cols-12 gap-4">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={`${i}`} className="grid grid-cols-12 gap-4">
               <div className="col-span-2 h-2 rounded bg-sky-700"></div>
               <div className="col-span-1 h-2 rounded bg-sky-700"></div>
               <div className="col-span-1 h-2 rounded bg-sky-700"></div>
