@@ -1,3 +1,36 @@
+# DeFi Arbitrageur: app
+
+Server, GUI and DB to use [diploma-core](https://github.com/zpix1/diploma-core) easily. NSU diploma project.
+
+## Repos
+
+1. [diploma-core](https://github.com/zpix1/diploma-core) (core)
+2. diploma-app (this lib)
+
+## Configuration
+
+Copy `.env.example` into `.env` and set your own values.
+
+## Installation
+
+Diploma core installation required. Instructions can be found in [diploma-core](https://github.com/zpix1/diploma-core) repo. Also Docker is required for MongoDB.
+
+```bash
+# Start DB
+docker compose up -d --build
+
+# Start JS
+npm link diploma-core
+npm ci
+npm run dev
+```
+
+And visit given URL.
+
+************
+
+This app was creating using Create T3 App, following lines are README of this template.
+
 # Create T3 App
 
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.

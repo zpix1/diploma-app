@@ -9,8 +9,3 @@ services:
       - 27017:27017
     volumes:
       - "./mongodb-data:/data/db"
-  diploma:
-    image: zpix1:diploma
-    environment:
-      - MONGODB_URI="mongodb://mongodb:27017/search"
-      - WEB3_PROVIDER_URL="https://mainnet.infura.io/v3/87cc21b1979742ce8a4077ff951712a9"
